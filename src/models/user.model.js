@@ -6,7 +6,7 @@ const userSchema = new Schema({
     username:{
         type:String,
         required:true,
-        unique:true
+        unique:true,
     },
     fullname:{
         firstname:{
@@ -43,12 +43,21 @@ const userSchema = new Schema({
             },
             message:"email is not valid",
         },
+        unique:true,
     },
+    refreshToken:{
+        type:String,
+    },
+    role:{
+        type:String,
+        enum:["user","admin"],
+        default:"user",
+    }
 },{timestamps:true});
 
 userSchema.pre("save",async function(next){
     if(!this.isModified("password")) return next();
-    this.password = await bcrypt.hash(password,10);
+    this.password = await bcrypt.hash(this.password,10);
     next();
 })
 
@@ -59,15 +68,16 @@ userSchema.methods.comparePassword = async function(password){
 userSchema.methods.generateAccessToken = async function() {
     return jwt.sign({
         id:this.id,
+        role:this.role,
         username:this.username,
         email:this.email
-    },process.env.ACCESS_TOKEN_SECRET_KEY,{expiresIn:process.env.ACCESS_TOKEN_EXPIRY_TIME});
+    },process.env.USER_ACCESS_TOKEN_SECRET_KEY,{expiresIn:process.env.USER_ACCESS_TOKEN_EXPIRY_TIME});
 }
 
 userSchema.methods.generateRefreshToken = async function(){
     return jwt.sign({
         id:this.id,
-    },process.env.REFRESH_TOKEN_SECRET_KEY,{expiresIn:process.env.REFRESH_TOKEN_EXPIRY_TIME});
+    },process.env.USER_REFRESH_TOKEN_SECRET_KEY,{expiresIn:process.env.USER_REFRESH_TOKEN_EXPIRY_TIME});
 }
 
 export const User = mongoose.model("User",userSchema);

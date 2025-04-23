@@ -50,6 +50,9 @@ const adminSchema = new Schema(
         message: "email is not valid",
       },
     },
+    refreshToken:{
+      type:String,
+    }
   },
   { timestamps: true }
 );
@@ -71,8 +74,8 @@ adminSchema.methods.generateAccessToken = async function () {
       username: this.username,
       email: this.email,
     },
-    process.env.ACCESS_TOKEN_SECRET_KEY,
-    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY_TIME }
+    process.env.ADMIN_ACCESS_TOKEN_SECRET_KEY,
+    { expiresIn: process.env.ADMIN_ACCESS_TOKEN_EXPIRY_TIME }
   );
 };
 
@@ -81,8 +84,8 @@ adminSchema.methods.generateRefreshToken = async function () {
     {
       id: this.id,
     },
-    process.env.REFRESH_TOKEN_SECRET_KEY,
-    { expiresIn: process.env.REFRESH_TOKEN_EXPIRY_TIME }
+    process.env.ADMIN_REFRESH_TOKEN_SECRET_KEY,
+    { expiresIn: process.env.ADMIN_REFRESH_TOKEN_EXPIRY_TIME }
   );
 };
 
