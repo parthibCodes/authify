@@ -9,7 +9,14 @@ export const verifyJWT = asyncHandler(async(req,res,next)=>{
         if(!token){
             throw new ApiError(401,"Unauthorized request");
         }
-        const decodedToken = jwt.verify(token,process.env.USER_ACCESS_TOKEN_SECRET_KEY);
+
+        const decodeUnverified = jwt.decode(token);
+        if(!decodeUnverified || !decodeUnverified.role){
+            throw new ApiError(401,"Invalid token payload");
+        }
+
+        const isAdmin = decodeUnverified.role === "admin";
+        const decodedToken = jwt.verify(token,isAdmin ? process.env.ADMIN_ACCESS_TOKEN_SECRET_KEY : process.env.USER_ACCESS_TOKEN_SECRET_KEY);
         const user = await User.findById(decodedToken?.id).select("-password -refreshToken");
         if(!user){
             throw new ApiError(401,"Invalid access token");

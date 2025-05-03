@@ -66,18 +66,20 @@ userSchema.methods.comparePassword = async function(password){
 }
 
 userSchema.methods.generateAccessToken = async function() {
+    const isAdmin = this.role === "admin";
     return jwt.sign({
         id:this.id,
         role:this.role,
         username:this.username,
         email:this.email
-    },process.env.USER_ACCESS_TOKEN_SECRET_KEY,{expiresIn:process.env.USER_ACCESS_TOKEN_EXPIRY_TIME});
+    },isAdmin ? process.env.ADMIN_ACCESS_TOKEN_SECRET_KEY : process.env.USER_ACCESS_TOKEN_SECRET_KEY,{expiresIn: isAdmin ? process.env.ADMIN_ACCESS_TOKEN_EXPIRY_TIME : process.env.USER_ACCESS_TOKEN_EXPIRY_TIME});
 }
 
 userSchema.methods.generateRefreshToken = async function(){
+    const isAdmin = this.role === "admin";
     return jwt.sign({
         id:this.id,
-    },process.env.USER_REFRESH_TOKEN_SECRET_KEY,{expiresIn:process.env.USER_REFRESH_TOKEN_EXPIRY_TIME});
+    },isAdmin ? process.env.ADMIN_REFRESH_TOKEN_SECRET_KEY : process.env.USER_REFRESH_TOKEN_SECRET_KEY,{expiresIn:isAdmin ? process.env.ADMIN_REFRESH_TOKEN_EXPIRY_TIME : process.env.USER_REFRESH_TOKEN_EXPIRY_TIME});
 }
 
 export const User = mongoose.model("User",userSchema);
