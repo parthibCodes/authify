@@ -11,7 +11,7 @@ export const successMail = async(email)=>{
         }
     });
     const info = await transporter.sendMail({
-        from:process.env.email,
+        from:`Authify <${process.env.email}>`,
         to:email,
         subject:"Your email has been verified successfully ✅",
         text:"Congratulations! Your email has been successfully verified.",

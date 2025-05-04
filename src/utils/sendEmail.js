@@ -17,12 +17,14 @@ const sendEmail = async (email, userId) => {
   const user = await User.findById(userId);
   const userToken = await user.generateAccessToken();
 
+  const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+
   // Send email
   const info = await transporter.sendMail({
-    from: process.env.email,
+    from: `Authify <${process.env.email}>`,
     to: email,
     subject: "Verify your email",
-    text: `Please open this link to validate your email address: http://localhost:6000/api/v1/users/verify/${userToken} \nThanks`,
+    text: `Please open this link to validate your email address: ${baseUrl}/api/v1/users/verify/${userToken} \nThanks`,
   });
 
   console.log(`Message sent: ${info.messageId}`);
