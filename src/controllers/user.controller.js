@@ -7,6 +7,7 @@ import { dataValidator } from "../utils/dataValidator.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import jwt from "jsonwebtoken";
 import { successMail } from "../utils/successMailMessage.js";
+import {handleForgotPassword} from "../utils/authService.js";
 
 const options = {
   httpOnly: true,
@@ -196,4 +197,35 @@ const resendLink = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(200, {}, "Verification email sent successfully"));
 });
 
-export { registerUser, loginUser, logoutUser, verifyEmail, resendLink };
+const forgotPassword = asyncHandler(async(req,res,next)=>{
+  const {email} = req.body;
+  try{
+    await handleForgotPassword(email);
+    return res
+    .status(200)
+    .json(new ApiResponse(200,{},"Reset email sent to the email"));
+  }
+  catch(error){
+    throw new ApiError(500,"",error);
+  }
+});
+
+const resetPassword = asyncHandler(async(req,res,next)=>{
+  const {newPassword} = req.body;
+  if(!newPassword){
+    throw new ApiError(400,"New Password is required");
+  }
+  const user = req.user;
+
+  user.password = newPassword;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+
+  await user.save();
+
+  return res
+  .status(200)
+  .json(new ApiResponse(200,{},"Password has been successfully reset."));
+})
+
+export { registerUser, loginUser, logoutUser, verifyEmail, resendLink,forgotPassword,resetPassword };
