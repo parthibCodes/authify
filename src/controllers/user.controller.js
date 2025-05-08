@@ -7,7 +7,7 @@ import { dataValidator } from "../utils/dataValidator.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import jwt from "jsonwebtoken";
 import { successMail } from "../utils/successMailMessage.js";
-import {handleForgotPassword} from "../utils/authService.js";
+import { handleForgotPassword } from "../utils/authService.js";
 
 const options = {
   httpOnly: true,
@@ -188,8 +188,8 @@ const resendLink = asyncHandler(async (req, res, next) => {
       .status(200)
       .json(new ApiResponse(200, {}, "User is already verified"));
   }
-  if(Date.now()-user.updatedAt.getTime() < 5*60*1000 ){
-    throw new ApiError(429,"You can not request before 5 minutes");
+  if (Date.now() - user.updatedAt.getTime() < 5 * 60 * 1000) {
+    throw new ApiError(429, "You can not request before 5 minutes");
   }
   await sendEmail(email, user.id);
   return res
@@ -197,23 +197,22 @@ const resendLink = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(200, {}, "Verification email sent successfully"));
 });
 
-const forgotPassword = asyncHandler(async(req,res,next)=>{
-  const {email} = req.body;
-  try{
+const forgotPassword = asyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+  try {
     await handleForgotPassword(email);
     return res
-    .status(200)
-    .json(new ApiResponse(200,{},"Reset email sent to the email"));
-  }
-  catch(error){
-    throw new ApiError(500,"",error);
+      .status(200)
+      .json(new ApiResponse(200, {}, "Reset email sent to the email"));
+  } catch (error) {
+    throw new ApiError(500, "", error);
   }
 });
 
-const resetPassword = asyncHandler(async(req,res,next)=>{
-  const {newPassword} = req.body;
-  if(!newPassword){
-    throw new ApiError(400,"New Password is required");
+const resetForgotPassword = asyncHandler(async (req, res, next) => {
+  const { newPassword } = req.body;
+  if (!newPassword) {
+    throw new ApiError(400, "New Password is required");
   }
   const user = req.user;
 
@@ -224,8 +223,46 @@ const resetPassword = asyncHandler(async(req,res,next)=>{
   await user.save();
 
   return res
-  .status(200)
-  .json(new ApiResponse(200,{},"Password has been successfully reset."));
-})
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password has been successfully reset."));
+});
 
-export { registerUser, loginUser, logoutUser, verifyEmail, resendLink,forgotPassword,resetPassword };
+const resetPassword = asyncHandler(async(req,res,next)=>{
+  const {email,password,newPassword} = req.body;
+  if(!email){
+    throw new ApiError(400,"Email must have to be provided to change the password");
+  }
+  if(!password){
+    throw new ApiError(400,"Password must have to be provided");
+  }
+  if(!newPassword){
+    throw new ApiError(400,"New Password must have to be provided");
+  }
+  const user = await User.findOne({email});
+  if(!user){
+    throw new ApiError(404,"There is no user exists with this email");
+  }
+  const matchPassword = await user.comparePassword(password);
+  if(!matchPassword){
+    throw new ApiError(401,"Password doesn't match");
+  }
+  if(password === newPassword){
+    throw new ApiError(409,"You cannot use the old password");
+  }
+  user.password = newPassword;
+  await user.save();
+  return res
+  .status(200)
+  .json(new ApiResponse(200,{},"Password have been updated successfully"));
+});
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  verifyEmail,
+  resendLink,
+  forgotPassword,
+  resetForgotPassword,
+  resetPassword
+};

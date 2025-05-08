@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginUser, logoutUser, registerUser, resendLink, verifyEmail ,forgotPassword, resetPassword} from "../controllers/user.controller.js";
+import { loginUser, logoutUser, registerUser, resendLink, verifyEmail ,forgotPassword, resetForgotPassword, resetPassword} from "../controllers/user.controller.js";
 import { verifyResetToken } from "../middlewares/verifyResetToken.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyRoles } from "../middlewares/verifyRole.middleware.js";
@@ -17,6 +17,7 @@ router.get('/change-password', verifyResetToken, (req, res) => {
     });
   });
   
-router.post('/change-password',verifyResetToken,resetPassword);
+router.post('/change-password',verifyResetToken,resetForgotPassword);
+router.post('/reset-password',resetPassword);
 
 export default router;
